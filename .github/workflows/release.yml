@@ -212,7 +212,7 @@ jobs:
           echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...v${{ needs.verify.outputs.version }}" >> CHANGELOG_BODY.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.verify.outputs.version }}
           name: "AioFast v${{ needs.verify.outputs.version }}"
