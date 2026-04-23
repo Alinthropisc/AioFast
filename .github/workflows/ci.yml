@@ -1,0 +1,250 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "release/**"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: 1
+  PYTHONUNBUFFERED: 1
+  UV_SYSTEM_PYTHON: 1
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: "🔍 Lint & Format"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linters
+        run: uv tool install ruff
+
+      - name: Ruff lint
+        run: ruff check . --output-format=github
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+  type-check:
+    name: "🔬 Type Check (ty)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run ty
+        run: uv run ty check core/
+        continue-on-error: true
+
+  test:
+    name: "🧪 Py${{ matrix.python }} / ${{ matrix.os }} / ${{ matrix.db }}"
+    runs-on: ${{ matrix.os }}
+    needs: [lint]
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+        db: [sqlite]
+        include:
+          - python: "3.12"
+            os: ubuntu-latest
+            db: postgresql
+          - python: "3.13"
+            os: ubuntu-latest
+            db: postgresql
+          - python: "3.12"
+            os: ubuntu-latest
+            db: mysql
+          - python: "3.12"
+            os: macos-latest
+            db: sqlite
+          - python: "3.12"
+            os: windows-latest
+            db: sqlite
+
+    services:
+      postgres:
+        image: ${{ matrix.db == 'postgresql' && 'postgres:16-alpine' || '' }}
+        env:
+          POSTGRES_USER: aiofast
+          POSTGRES_PASSWORD: aiofast_test
+          POSTGRES_DB: aiofast_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: ${{ matrix.db == 'mysql' && 'mysql:8.0' || '' }}
+        env:
+          MYSQL_ROOT_PASSWORD: aiofast_test
+          MYSQL_DATABASE: aiofast_test
+          MYSQL_USER: aiofast
+          MYSQL_PASSWORD: aiofast_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: >-
+        ${{
+          matrix.db == 'postgresql'
+            && 'postgresql+asyncpg://aiofast:aiofast_test@localhost:5432/aiofast_test'
+            || matrix.db == 'mysql'
+            && 'mysql+aiomysql://aiofast:aiofast_test@localhost:3306/aiofast_test'
+            || 'sqlite+aiosqlite:///:memory:'
+        }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: uv pip install ".[dev,test]" aiosqlite
+
+      - name: Install DB driver (PostgreSQL)
+        if: matrix.db == 'postgresql'
+        run: uv pip install asyncpg psycopg2-binary
+
+      - name: Install DB driver (MySQL)
+        if: matrix.db == 'mysql'
+        run: uv pip install aiomysql
+      
+      - name: Install DB driver (SQLite)
+        if: matrix.db == 'sqlite'
+        run: uv pip install aiosqlite
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/ \
+            -v \
+            --tb=short \
+            --strict-markers \
+            -x \
+            --timeout=60 \
+            --junitxml=reports/junit-${{ matrix.python }}-${{ matrix.os }}-${{ matrix.db }}.xml \
+            --cov=core \
+            --cov-report=xml:reports/coverage-${{ matrix.python }}-${{ matrix.os }}-${{ matrix.db }}.xml \
+            --cov-report=term-missing
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python }}-${{ matrix.os }}-${{ matrix.db }}
+          path: reports/
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: matrix.python == '3.12' && matrix.os == 'ubuntu-latest' && matrix.db == 'sqlite'
+        uses: codecov/codecov-action@v4
+        with:
+          file: reports/coverage-${{ matrix.python }}-${{ matrix.os }}-${{ matrix.db }}.xml
+          flags: unittests
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  coverage:
+    name: "📊 Coverage Report"
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv pip install ".[dev,test]" aiosqlite coverage
+
+      - name: Run coverage
+        run: |
+          uv run coverage run -m pytest tests/ -q
+          uv run coverage report --fail-under=80
+          uv run coverage xml -o coverage.xml
+
+      - name: Coverage comment on PR
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          thresholdAll: 0.80
+          thresholdNew: 0.90
+
+  ci-success:
+    name: "✅ CI Complete"
+    runs-on: ubuntu-latest
+    needs: [lint, type-check, test]
+    if: always()
+
+    steps:
+      - name: Check all jobs
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ]; then
+            echo "❌ CI failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed!"

@@ -1,0 +1,67 @@
+name: aiofast
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiofast-app
+    restart: always
+    ports:
+      - "${SERVER_PORT:-8000}:8000"
+    volumes: []  # No bind mounts in prod
+    environment:
+      APP_ENV: production
+      SERVER_RELOAD: "false"
+      SERVER_WORKERS: "${SERVER_WORKERS:-4}"
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}"
+      REDIS_URL: "redis://redis:6379/0"
+    deploy:
+      resources:
+        limits:
+          cpus: "${APP_CPU_LIMIT:-2.0}"
+          memory: "${APP_MEM_LIMIT:-1G}"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    restart: always
+    environment:
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_NAME}"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  redis:
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-}
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"

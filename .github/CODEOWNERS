@@ -1,0 +1,16 @@
+# Default owners
+* @aiofast/core-team
+
+# Database
+aiofast/database/ @aiofast/database-team
+tests/database/ @aiofast/database-team
+
+# Auth
+aiofast/auth/ @aiofast/security-team
+tests/auth/ @aiofast/security-team
+
+# CI/CD
+.github/ @aiofast/devops-team
+
+# Docs
+docs/ @aiofast/docs-team

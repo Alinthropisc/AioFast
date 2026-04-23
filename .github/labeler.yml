@@ -1,0 +1,23 @@
+"database":
+  - changed-files:
+      - any-glob-to-any-file: ["aiofast/database/**", "tests/database/**"]
+
+"auth":
+  - changed-files:
+      - any-glob-to-any-file: ["aiofast/auth/**", "tests/auth/**"]
+
+"ci":
+  - changed-files:
+      - any-glob-to-any-file: [".github/**"]
+
+"documentation":
+  - changed-files:
+      - any-glob-to-any-file: ["docs/**", "*.md"]
+
+"tests":
+  - changed-files:
+      - any-glob-to-any-file: ["tests/**"]
+
+"core":
+  - changed-files:
+      - any-glob-to-any-file: ["aiofast/foundation/**", "aiofast/container/**"]

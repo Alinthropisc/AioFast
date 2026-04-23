@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/aiofast/aiofast/discussions
+    about: Ask questions and discuss ideas
+  - name: 📚 Documentation
+    url: https://aiofast.dev
+    about: Read the documentation
+  - name: 💬 Discord
+    url: https://discord.gg/aiofast
+    about: Chat with the community

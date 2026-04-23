@@ -1,0 +1,164 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-audit:
+    name: "🔒 Dependency Audit"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system ".[dev,test]" pip-audit safety
+
+      - name: pip-audit
+        run: |
+          uv pip install --system pip-audit
+          uv export --format requirements-txt --no-hashes > /tmp/requirements-audit.txt
+          pip-audit -r /tmp/requirements-audit.txt
+
+      - name: Safety check
+        run: uv run safety check --full-report
+        continue-on-error: true
+
+  codeql:
+    name: "🛡️ CodeQL Analysis"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: +security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+
+  bandit:
+    name: "🐍 Bandit Security Scan"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install bandit
+        run: uv pip install --system bandit[toml]
+
+      - name: Run Bandit
+        run: |
+          bandit -r core/ \
+            -f json \
+            -o bandit-report.json \
+            --severity-level medium \
+            --confidence-level medium \
+            -x "tests/" || true
+
+      - name: Upload Bandit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+      - name: Display results
+        if: always()
+        run: bandit -r core/ --severity-level medium -x "tests/" || true
+
+  semgrep:
+    name: "🔎 Semgrep SAST"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST
+        run: |
+          uv pip install --system semgrep
+          semgrep scan --config=auto --error \
+            --exclude="*.lock" \
+            --exclude=".venv" \
+            --sarif-output=reports/semgrep.sarif \
+            . || true 
+          generateSarif: "1"
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+        continue-on-error: true
+
+  licenses:
+    name: "📄 License Check"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          uv pip install --system ".[dev]" pip-licenses
+
+      - name: Check licenses
+        run: |
+          uv run pip-licenses --format=markdown --output-file=reports/licenses.md
+          echo ""
+          echo "=== Checking for problematic licenses ==="
+          FORBIDDEN=$(uv run pip-licenses --format=csv | grep -iE "GPL|AGPL|SSPL" | grep -v "LGPL" || true)
+          if [ -n "$FORBIDDEN" ]; then
+            echo "⚠️ Found potentially problematic licenses:"
+            echo "$FORBIDDEN"
+          else
+            echo "✅ No problematic licenses found"
+          fi

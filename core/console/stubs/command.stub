@@ -1,0 +1,20 @@
+from core.console.command import Command
+from core.console.descriptors import Argument, Option
+
+
+class {{ className }}(Command):
+    """{{ description }}"""
+
+    name = "{{ commandName }}"
+    description = "{{ description }}"
+
+    async def handle(self) -> int:
+        self.info("{{ commandName }} executed successfully!")
+        return self.SUCCESS
+
+
+
+
+
+
+

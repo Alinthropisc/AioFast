@@ -1,0 +1,243 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  PYTHONDONTWRITEBYTECODE: 1
+  UV_SYSTEM_PYTHON: 1
+
+jobs:
+  verify:
+    name: "🔍 Verify Version"
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
+          if [[ "$TAG" == *"alpha"* ]] || [[ "$TAG" == *"beta"* ]] || [[ "$TAG" == *"rc"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "📦 Version: $TAG"
+
+      - name: Verify pyproject.toml version matches tag
+        run: |
+          PYPROJECT_VERSION=$(python -c "
+          import re
+          with open('pyproject.toml') as f:
+              content = f.read()
+          match = re.search(r'version\s*=\s*\"(.+?)\"', content)
+          print(match.group(1) if match else 'NOT_FOUND')
+          ")
+          TAG_VERSION=${{ steps.version.outputs.version }}
+          if [ "$PYPROJECT_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ Version mismatch: pyproject.toml=$PYPROJECT_VERSION tag=$TAG_VERSION"
+            exit 1
+          fi
+          echo "✅ Version matches: $TAG_VERSION"
+
+  test:
+    name: "🧪 Pre-release Tests"
+    runs-on: ubuntu-latest
+    needs: [verify]
+
+    strategy:
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          uv pip install ".[dev,test]" aiosqlite
+
+      - name: Run tests
+        run: uv run pytest tests/ -v --tb=short -x --timeout=60
+
+  build:
+    name: "📦 Build Package"
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build package
+        run: uv build
+
+      - name: Check package
+        run: |
+          uv pip install twine
+          twine check dist/*
+          echo "📦 Built packages:"
+          ls -la dist/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-pypi:
+    name: "🚀 Publish to PyPI"
+    runs-on: ubuntu-latest
+    needs: [build, verify]
+    environment:
+      name: pypi
+      url: https://pypi.org/project/aiofast/
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
+
+  publish-test-pypi:
+    name: "🧪 Publish to Test PyPI"
+    runs-on: ubuntu-latest
+    needs: [build, verify]
+    if: needs.verify.outputs.is_prerelease == 'true'
+    environment:
+      name: test-pypi
+      url: https://test.pypi.org/project/aiofast/
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          print-hash: true
+
+  github-release:
+    name: "📋 GitHub Release"
+    runs-on: ubuntu-latest
+    needs: [publish-pypi, verify]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Generate changelog
+        run: |
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | head -2 | tail -1)
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          echo "## What's Changed" > CHANGELOG_BODY.md
+          echo "" >> CHANGELOG_BODY.md
+
+          FEATURES=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --grep="^feat" --grep="^add" --grep="^new" -i)
+          if [ -n "$FEATURES" ]; then
+            echo "### 🚀 Features" >> CHANGELOG_BODY.md
+            echo "$FEATURES" >> CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+          fi
+
+          FIXES=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --grep="^fix" --grep="^bug" -i)
+          if [ -n "$FIXES" ]; then
+            echo "### 🐛 Bug Fixes" >> CHANGELOG_BODY.md
+            echo "$FIXES" >> CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+          fi
+
+          OTHER=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --grep="^feat" --grep="^fix" --grep="^add" --grep="^new" --grep="^bug" --invert-grep -i | head -20)
+          if [ -n "$OTHER" ]; then
+            echo "### 📝 Other Changes" >> CHANGELOG_BODY.md
+            echo "$OTHER" >> CHANGELOG_BODY.md
+            echo "" >> CHANGELOG_BODY.md
+          fi
+
+          echo "" >> CHANGELOG_BODY.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...v${{ needs.verify.outputs.version }}" >> CHANGELOG_BODY.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.verify.outputs.version }}
+          name: "AioFast v${{ needs.verify.outputs.version }}"
+          body_path: CHANGELOG_BODY.md
+          prerelease: ${{ needs.verify.outputs.is_prerelease == 'true' }}
+          files: dist/*
+          generate_release_notes: true
+
+  notify:
+    name: "📢 Notify"
+    runs-on: ubuntu-latest
+    needs: [github-release, verify]
+    if: needs.verify.outputs.is_prerelease == 'false'
+
+    steps:
+      - name: Discord notification
+        if: env.DISCORD_WEBHOOK != ''
+        uses: sarisia/actions-status-discord@v1
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "🎉 AioFast v${{ needs.verify.outputs.version }} Released!"
+          description: |
+            New version published to PyPI!
+            📦 `pip install aiofast==${{ needs.verify.outputs.version }}`
+            📋 [Release Notes](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.verify.outputs.version }})
+          color: 0x00ff00
