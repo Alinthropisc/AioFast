@@ -51,7 +51,7 @@ jobs:
           fail_if_xl: false
 
       - name: Label PR by files changed
-        uses: actions/labeler@v5
+        uses: actions/labeler@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
