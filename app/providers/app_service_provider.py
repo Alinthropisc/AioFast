@@ -28,7 +28,7 @@ class AppServiceProvider(ServiceProvider):
         """Route modules to load. Each exposes ``register(routes, app)``."""
         modules = []
         try:
-            from app.routes import api, web
+            from routes import api, web
 
             modules.extend([web, api])
         except ImportError:

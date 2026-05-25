@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, events
+from locust import HttpUser, between, task
 
 
 class APIUser(HttpUser):
@@ -15,17 +15,14 @@ class APIUser(HttpUser):
 
     @task(3)
     def api_create(self):
-        self.client.post("/api/v1/items", json={
-            "name": "test",
-            "value": 42,
-        })
+        self.client.post(
+            "/api/v1/items",
+            json={
+                "name": "test",
+                "value": 42,
+            },
+        )
 
     @task(1)
     def api_detail(self):
         self.client.get("/api/v1/items/1")
-
-
-
-
-
-

@@ -125,8 +125,8 @@ class Factory(Generic[T]):
                 from faker import Faker
 
                 self._faker = Faker()
-            except ImportError:
-                raise ImportError("Install faker: pip install faker")
+            except ImportError as exc:
+                raise ImportError("Install faker: pip install faker") from exc
         return self._faker
 
     def definition(self) -> dict[str, Any]:

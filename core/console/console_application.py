@@ -315,8 +315,8 @@ class ConsoleApplication:
             if timeout_seconds > 0:
                 try:
                     return await asyncio.wait_for(_invoke(), timeout=timeout_seconds)
-                except asyncio.TimeoutError:
-                    raise CommandTimeoutException(command.name, timeout_seconds)
+                except asyncio.TimeoutError as exc:
+                    raise CommandTimeoutException(command.name, timeout_seconds) from exc
             return await _invoke()
 
         if retry_times > 0:

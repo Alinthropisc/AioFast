@@ -5,19 +5,7 @@ class ConfigurationError(AioFastException):
     pass
 
 
-class ConfigKeyError(ConfigurationError, KeyError):
-    pass
-
-
 class ConfigLoadError(ConfigurationError):
-    pass
-
-
-class EnvironmentError(Exception):
-    pass
-
-
-class EnvironmentKeyError(EnvironmentError, KeyError):
     pass
 
 

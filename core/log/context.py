@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextvars import ContextVar
 from typing import Any
 
-_log_context: ContextVar[dict[str, Any]] = ContextVar("log_context", default={})
+_log_context: ContextVar[dict[str, Any]] = ContextVar("log_context", default={})  # noqa: B039
 
 
 class LogContext:

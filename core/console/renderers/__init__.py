@@ -1,5 +1,3 @@
-from typing import Any, Dict, List, Optional
-
 from .base import Renderer
 from .csv import CsvRenderer
 from .json import JsonRenderer
@@ -14,7 +12,6 @@ __all__ = [
     "JsonRenderer",
     "PlainRenderer",
     "Renderer",
-    "RendererManager",
     "RendererManager",
     "TableRenderer",
     "XmlRenderer",

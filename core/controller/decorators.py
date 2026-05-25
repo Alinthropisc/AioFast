@@ -19,7 +19,7 @@ def _route_action(
     """Internal: mark a method with route metadata."""
 
     def decorator(method: Callable) -> Callable:
-        method._route_meta = {  # type: ignore[attr-defined]
+        method._route_meta = {  # ty: ignore[unresolved-attribute]
             "methods": methods,
             "path": path,
             "name": name,

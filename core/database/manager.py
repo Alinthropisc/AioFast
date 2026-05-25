@@ -282,10 +282,10 @@ class DatabaseManager:
             }
         return {
             "pool": type(pool).__name__,
-            "size": pool.size(),
-            "checked_in": pool.checkedin(),
-            "checked_out": pool.checkedout(),
-            "overflow": pool.overflow(),
+            "size": pool.size(),  # ty: ignore[unresolved-attribute]
+            "checked_in": pool.checkedin(),  # ty: ignore[unresolved-attribute]
+            "checked_out": pool.checkedout(),  # ty: ignore[unresolved-attribute]
+            "overflow": pool.overflow(),  # ty: ignore[unresolved-attribute]
         }
 
     def __repr__(self) -> str:

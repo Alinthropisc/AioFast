@@ -160,15 +160,13 @@ class Platform:
     @staticmethod
     def _detect_os() -> OSType:
         system = platform.system().lower()
-        if system == "windows":
-            return OSType.WINDOWS
-        elif system == "linux":
-            return OSType.LINUX
-        elif system == "darwin":
-            return OSType.MACOS
-        elif system == "freebsd":
-            return OSType.FREEBSD
-        return OSType.UNKNOWN
+        mapping = {
+            "windows": OSType.WINDOWS,
+            "linux": OSType.LINUX,
+            "darwin": OSType.MACOS,
+            "freebsd": OSType.FREEBSD,
+        }
+        return mapping.get(system, OSType.UNKNOWN)
 
     @staticmethod
     def _detect_arch() -> ArchType:
@@ -206,7 +204,7 @@ class Platform:
                 return True
             elif loop_type == LoopType.ASYNCIO:
                 if self.is_windows:
-                    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+                    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())  # ty: ignore[unresolved-attribute]
                 else:
                     asyncio.set_event_loop_policy(None)
                 return True

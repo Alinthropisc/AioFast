@@ -116,7 +116,7 @@ class AdapterManager:
                 widths[i] = max(widths[i], len(v))
 
         sep = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
-        hdr = "| " + " | ".join(h.ljust(w) for h, w in zip(headers, widths)) + " |"
+        hdr = "| " + " | ".join(h.ljust(w) for h, w in zip(headers, widths, strict=False)) + " |"
         print(sep)
         print(hdr)
         print(sep)
@@ -130,7 +130,7 @@ class AdapterManager:
                 row["middleware"],
                 row["handler"],
             ]
-            line = "| " + " | ".join(v.ljust(w) for v, w in zip(vals, widths)) + " |"
+            line = "| " + " | ".join(v.ljust(w) for v, w in zip(vals, widths, strict=False)) + " |"
             print(line)
         print(sep)
 

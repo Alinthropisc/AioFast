@@ -51,11 +51,11 @@ class GranianServer(BaseServer):
             address=self._config.host,
             port=self._config.port,
             workers=self._config.workers,
-            interface=self._interface,
+            interface=self._interface,  # ty: ignore[invalid-argument-type]
             reload=self._config.reload,
-            log_level=self._config.log_level.upper(),
-            ssl_cert=self._config.ssl_certfile,
-            ssl_key=self._config.ssl_keyfile,
+            log_level=self._config.log_level.upper(),  # ty: ignore[invalid-argument-type]
+            ssl_cert=self._config.ssl_certfile,  # ty: ignore[invalid-argument-type]
+            ssl_key=self._config.ssl_keyfile,  # ty: ignore[invalid-argument-type]
             **self._config.extra,
         )  # ty:ignore[invalid-argument-type]
         self._running = True

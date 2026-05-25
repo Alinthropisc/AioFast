@@ -1,5 +1,5 @@
-import pytest
 import asyncio
+
 from core.foundation.container import Container
 
 
@@ -17,6 +17,7 @@ def test_bind_speed(benchmark):
         c = Container()
         for i in range(1000):
             c.bind(f"service.{i}", DummyService)
+
     benchmark(bind_many)
 
 

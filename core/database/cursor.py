@@ -135,5 +135,5 @@ class CursorPaginator:
             payload = base64.urlsafe_b64decode(cursor.encode()).decode()
             data = json.loads(payload)
             return data["v"]
-        except Exception:
-            raise ValueError(f"Invalid cursor: {cursor}")
+        except Exception as exc:
+            raise ValueError(f"Invalid cursor: {cursor}") from exc

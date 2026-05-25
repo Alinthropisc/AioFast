@@ -161,24 +161,6 @@ class Controller:
             result["errors"] = errors
         return result
 
-    # ── naming ────────────────────────────────────────────
-
-    @classmethod
-    def controller_name(cls) -> str:
-        name = cls.__name__
-        for suffix in ("Controller", "Ctrl"):
-            if name.endswith(suffix):
-                name = name[: -len(suffix)]
-                break
-        s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-        return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
-    @classmethod
-    def get_name_prefix(cls) -> str:
-        if cls.name_prefix:
-            return cls.name_prefix
-        return f"{cls.controller_name()}."
-
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} path={self.path!r}>"
 
@@ -250,12 +232,11 @@ class ResourceController(Controller):
                 continue
             if cls.exclude and method_name in cls.exclude:
                 continue
-            # Check if method is actually defined (not just inherited stub)
+            # Include only methods that are actually defined (not inherited
+            # stubs that just raise NotImplementedError).
             method = getattr(cls, method_name, None)
-            if method is not None and callable(method):
-                # Skip if it's just the base class raising NotImplementedError
-                if not _is_abstract_method(method):
-                    available.append(method_name)
+            if method is not None and callable(method) and not _is_abstract_method(method):
+                available.append(method_name)
         return available
 
 

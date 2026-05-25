@@ -24,10 +24,9 @@ async def resolve_handler_dependencies(
         sig = inspect.signature(handler)
         for name, param in sig.parameters.items():
             ann = param.annotation
-            if ann is not inspect.Parameter.empty:
-                # If annotation is already a type (not string), use it
-                if isinstance(ann, type):
-                    hints[name] = ann
+            # Use the annotation only if it's already a type (not a string)
+            if ann is not inspect.Parameter.empty and isinstance(ann, type):
+                hints[name] = ann
     result = dict(existing_data)
     sig = inspect.signature(handler)
     SKIP = (str, int, float, bool, bytes, list, dict, tuple, set, type(None))

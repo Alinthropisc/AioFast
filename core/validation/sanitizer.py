@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 import re
 import unicodedata
-from collections.abc import Callable  # noqa: TC003
+from collections.abc import Callable
 from typing import Any
 
 
@@ -31,7 +31,7 @@ class Sanitizer:
     """
 
     # Built-in sanitizers
-    SANITIZERS: dict[str, Callable[[Any], Any]] = {}  # noqa: RUF012
+    SANITIZERS: dict[str, Callable[[Any], Any]] = {}
 
     def __init__(
         self,

@@ -45,11 +45,11 @@ class Environment:
         env_file: str | Path | None = None,
         env_files: builtins.list[str | Path] | None = None,
         *,
-        load_system_env: bool = True,
-        interpolate: bool = True,
-        override: bool = True,
+        load_system_env: builtins.bool = True,
+        interpolate: builtins.bool = True,
+        override: builtins.bool = True,
         base_path: str | Path | None = None,
-    ) -> None:  # ty:ignore[invalid-type-form]
+    ) -> None:
         self._values: dict[str, str] = {}
         self._cache: dict[str, Any] = {}
         self._loaded_files: list[Path] = []
@@ -123,8 +123,8 @@ class Environment:
             return default
 
     def list(
-        self, key: str, default: builtins.list[str] | None = None, separator: str = ",", strip: bool = True
-    ) -> builtins.list[str]:  # ty:ignore[invalid-type-form]
+        self, key: str, default: builtins.list[str] | None = None, separator: str = ",", strip: builtins.bool = True
+    ) -> builtins.list[str]:
         if default is None:
             default = []
         value = self._values.get(key)

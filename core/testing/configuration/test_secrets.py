@@ -43,16 +43,6 @@ class TestSecretsResolverEnv:
 
 
 class TestSecretsResolverMany:
-    def test_resolve_many(self, resolver, env_file: Path, tmp_path: Path):
-        from core.configuration.environment import Environment
-
-        env = Environment(env_file=env_file, load_system_env=False, base_path=tmp_path)
-        resolver = SecretsResolver(env)  # ty:ignore[too-many-positional-arguments]
-        result = resolver.resolve_many(["DB_PASSWORD", "API_KEY", "MISSING"])
-        assert result["DB_PASSWORD"] == "my_db_pass"
-        assert result["API_KEY"] == "key-123-abc"
-        assert result["MISSING"] is None
-
     def test_file_not_found(self, resolver):
         assert resolver.resolve("NONEXISTENT_FILE") is None
 
@@ -85,7 +75,7 @@ class TestSecretsResolverCache:
         assert resolver._cache == {}
 
 
-class TestSecretsResolverMany:
+class TestSecretsResolverManyFromResolver:
     def test_resolve_many(self, resolver):
         result = resolver.resolve_many(["DB_PASSWORD", "API_KEY", "MISSING"])
         assert result["DB_PASSWORD"] == "my_db_pass"

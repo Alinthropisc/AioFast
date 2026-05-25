@@ -83,8 +83,8 @@ class OAuthProvider:
         """Exchange authorization code for access token."""
         try:
             import httpx
-        except ImportError:
-            raise ImportError("Install httpx: pip install httpx")
+        except ImportError as exc:
+            raise ImportError("Install httpx: pip install httpx") from exc
 
         async with httpx.AsyncClient() as client:
             response = await client.post(

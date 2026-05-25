@@ -32,14 +32,14 @@ jobs:
         run: |
           uv pip install --system ".[dev,test]" aiosqlite pytest-benchmark
 
-          - name: Run benchmarks
-          run: |
-            uv run pytest benchmarks/ \
-              --benchmark-json=benchmark-results.json \
-              --benchmark-sort=mean \
-              --benchmark-min-rounds=10 \
-              -v || true
-  
+      - name: Run benchmarks
+        run: |
+          uv run pytest benchmarks/ \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-sort=mean \
+            --benchmark-min-rounds=10 \
+            -v || true
+
       - name: Store benchmark result
         if: github.ref == 'refs/heads/main' && hashFiles('benchmark-results.json') != ''
         uses: benchmark-action/github-action-benchmark@v1

@@ -62,14 +62,12 @@ class PasswordHasher:
     def needs_rehash(self, hashed: str) -> bool:
         """Check if hash needs to be upgraded (algorithm or rounds changed)."""
         if self._algorithm == "bcrypt":
-            try:
-                import bcrypt
+            import importlib.util
 
-                # Check rounds
-                prefix = f"$2b${self._rounds:02d}$"
-                return not hashed.startswith(prefix)
-            except ImportError:
+            if importlib.util.find_spec("bcrypt") is None:
                 return False
+            prefix = f"$2b${self._rounds:02d}$"
+            return not hashed.startswith(prefix)
         return False
 
     # ── Bcrypt ────────────────────────────────────────────
@@ -77,8 +75,8 @@ class PasswordHasher:
     def _hash_bcrypt(self, password: str) -> str:
         try:
             import bcrypt
-        except ImportError:
-            raise ImportError("Install bcrypt: pip install bcrypt")
+        except ImportError as exc:
+            raise ImportError("Install bcrypt: pip install bcrypt") from exc
         salt = bcrypt.gensalt(rounds=self._rounds)
         return bcrypt.hashpw(password.encode(), salt).decode()
 
@@ -95,8 +93,8 @@ class PasswordHasher:
     def _hash_argon2(self, password: str) -> str:
         try:
             from argon2 import PasswordHasher as A2Hasher
-        except ImportError:
-            raise ImportError("Install argon2: pip install argon2-cffi")
+        except ImportError as exc:
+            raise ImportError("Install argon2: pip install argon2-cffi") from exc
         return A2Hasher().hash(password)
 
     def _verify_argon2(self, password: str, hashed: str) -> bool:

@@ -66,8 +66,8 @@ class Application(BaseConfiguration):
     # METHODS
     # ══════════════════════════════════════════════
 
-    # В pydantic v2 валидаторы объявляются по именам полей модели,  # noqa: RUF003
-    # а не по именам переменных окружения.# noqa: RUF003
+    # В pydantic v2 валидаторы объявляются по именам полей модели,
+    # а не по именам переменных окружения.
     @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, v):

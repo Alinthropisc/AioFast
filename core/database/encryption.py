@@ -51,8 +51,8 @@ class EncryptedString(TypeDecorator):
     def _get_fernet(self):
         try:
             from cryptography.fernet import Fernet
-        except ImportError:
-            raise ImportError("Install cryptography: pip install cryptography")
+        except ImportError as exc:
+            raise ImportError("Install cryptography: pip install cryptography") from exc
         return Fernet(self._key)
 
     def process_bind_param(self, value: Any, dialect: Any) -> str | None:
@@ -105,8 +105,8 @@ class HashedString(TypeDecorator):
                 import bcrypt
 
                 return bcrypt.hashpw(value.encode(), bcrypt.gensalt()).decode()
-            except ImportError:
-                raise ImportError("Install bcrypt: pip install bcrypt")
+            except ImportError as exc:
+                raise ImportError("Install bcrypt: pip install bcrypt") from exc
         # Default: SHA256
         return hashlib.sha256(value.encode()).hexdigest()
 

@@ -79,34 +79,3 @@ jobs:
         run: uv run mkdocs gh-deploy --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  api-docs:
-    name: "📖 Generate API Reference"
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install
-        run: |
-          uv pip install ".[dev]" pdoc3
-
-      - name: Generate API docs
-        run: uv run pdoc --html --output-dir api-docs core
-
-      - name: Upload API docs
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-docs
-          path: api-docs/

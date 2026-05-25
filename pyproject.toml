@@ -141,13 +141,23 @@ ignore = [
     "S104",
     "B008",
     "E501",
+    # Project ships Russian comments/docstrings — Cyrillic looks "ambiguous" to ruff.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # Framework base classes use mutable class-level defaults ([] / {}) by design.
+    "RUF012",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S106", "T20"]
+# Tests may use loose style: ambiguous names, late imports, explicit if/else.
+"core/testing/**" = ["S101", "S106", "T20", "E741", "E402", "RUF034"]
 "benchmarks/**" = ["T20"]
-"config/**" = ["F401", "E501"]
+"config/**" = ["F401", "E501", "UP035"]
 "core/registry/manager.py" = ["T20"]
+# Optional lifecycle hooks are intentionally empty (not abstract).
+"core/console/command.py" = ["B027"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["core"]

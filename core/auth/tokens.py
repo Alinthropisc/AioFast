@@ -92,8 +92,8 @@ class TokenManager:
             import jwt
 
             return jwt
-        except ImportError:
-            raise ImportError("Install PyJWT: pip install PyJWT")
+        except ImportError as exc:
+            raise ImportError("Install PyJWT: pip install PyJWT") from exc
 
     # ── Issue ─────────────────────────────────────────────
 

@@ -62,3 +62,6 @@ pdm.toml
 
 # Local environment
 .env
+
+# Docs build
+site/

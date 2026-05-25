@@ -28,7 +28,7 @@ class SamplingFilter:
             deterministic: same message always same decision
         """
         self._rate = max(0.0, min(1.0, rate))
-        self._levels = {l.upper() for l in levels} if levels else None
+        self._levels = {lvl.upper() for lvl in levels} if levels else None
         self._deterministic = deterministic
 
     def __call__(self, record: dict) -> bool:

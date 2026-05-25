@@ -46,8 +46,8 @@ class LitestarAdapter(BaseAdapter):
     async def configure(self, app: Application, config: dict[str, Any]) -> None:
         try:
             import litestar  # noqa: F401
-        except ImportError:
-            raise ImportError("litestar is required for LitestarAdapter. Install: pip install litestar")
+        except ImportError as exc:
+            raise ImportError("litestar is required for LitestarAdapter. Install: pip install litestar") from exc
         self._app = app
         self._config = config
         self._state = AdapterState.CONFIGURED
@@ -128,7 +128,7 @@ class LitestarAdapter(BaseAdapter):
             dependencies=all_deps or None,
             exception_handlers=self._exception_handlers or None,
             plugins=self._plugins or None,
-            debug=self._config.get("debug", self._app.is_debug),
+            debug=self._config.get("debug", self._app.is_debug),  # ty: ignore[unresolved-attribute]
             on_startup=[_on_startup] if self._on_startup else None,
             on_shutdown=[_on_shutdown],
             **self._litestar_kwargs,

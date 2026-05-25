@@ -64,7 +64,7 @@ class BufferedChannel(Channel):
                 if asyncio.iscoroutine(result):
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
-                        asyncio.ensure_future(result)
+                        asyncio.ensure_future(result)  # noqa: RUF006  (fire-and-forget flush)
                     else:
                         loop.run_until_complete(result)
             except Exception:

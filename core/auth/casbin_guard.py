@@ -107,8 +107,8 @@ class CasbinGuard:
 
         import casbin
 
-        # Write model to temp file (casbin needs file path)
-        model_file = tempfile.NamedTemporaryFile(mode="w", suffix=".conf", delete=False)
+        # Write model to temp file (casbin needs a file path, not a handle).
+        model_file = tempfile.NamedTemporaryFile(mode="w", suffix=".conf", delete=False)  # noqa: SIM115
         model_file.write(RBAC_MODEL)
         model_file.close()
         self._enforcer = casbin.Enforcer(model_file.name)
@@ -123,7 +123,7 @@ class CasbinGuard:
 
         import casbin
 
-        model_file = tempfile.NamedTemporaryFile(mode="w", suffix=".conf", delete=False)
+        model_file = tempfile.NamedTemporaryFile(mode="w", suffix=".conf", delete=False)  # noqa: SIM115
         model_file.write(model_text)
         model_file.close()
         self._enforcer = casbin.Enforcer(model_file.name, adapter)

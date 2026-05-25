@@ -1,4 +1,5 @@
 import asyncio
+
 import pytest
 
 
@@ -12,5 +13,6 @@ def event_loop():
 @pytest.fixture
 def container():
     from core.foundation.container import Container
+
     c = Container()
     yield c

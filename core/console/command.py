@@ -11,7 +11,7 @@ from .signature_parser import SignatureParser
 from .wizard import Wizard
 
 if TYPE_CHECKING:
-    from .application import ConsoleApplication
+    from .console_application import ConsoleApplication
     from .input import ArgvInput
     from .output import ConsoleOutput
 

@@ -50,10 +50,10 @@ class AiogramAdapter(BaseAdapter):
             from aiogram import Bot, Dispatcher, Router
             from aiogram.client.default import DefaultBotProperties
             from aiogram.enums import ParseMode
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "aiogram is required for AiogramAdapter. Install: pip install aiogram or use uv, uv add aiogram"
-            )
+            ) from exc
 
         token = config.get("token") or os.getenv("BOT_TOKEN", "")
         if not token:

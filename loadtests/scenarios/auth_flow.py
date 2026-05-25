@@ -1,21 +1,26 @@
-from locust import HttpUser, task, between, SequentialTaskSet
+from locust import HttpUser, SequentialTaskSet, between, task
 
 
 class AuthFlow(SequentialTaskSet):
-
     @task
     def register(self):
-        self.client.post("/api/v1/auth/register", json={
-            "email": f"user_{self.user.user_id}@test.com",  # ty:ignore[unresolved-attribute]
-            "password": "Test123!",
-        })
+        self.client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": f"user_{self.user.user_id}@test.com",  # ty:ignore[unresolved-attribute]
+                "password": "Test123!",
+            },
+        )
 
     @task
     def login(self):
-        resp = self.client.post("/api/v1/auth/login", json={
-            "email": f"user_{self.user.user_id}@test.com",  # ty:ignore[unresolved-attribute]
-            "password": "Test123!",
-        })
+        resp = self.client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": f"user_{self.user.user_id}@test.com",  # ty:ignore[unresolved-attribute]
+                "password": "Test123!",
+            },
+        )
         if resp.status_code == 200:
             self.user.token = resp.json().get("token")  # ty:ignore[unresolved-attribute]
 

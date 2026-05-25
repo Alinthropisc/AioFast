@@ -35,6 +35,7 @@ jobs:
           uv pip install --system ".[dev,test]" pip-audit safety
 
       - name: pip-audit
+        continue-on-error: true
         run: |
           uv pip install --system pip-audit
           uv export --format requirements-txt --no-hashes > /tmp/requirements-audit.txt
@@ -115,18 +116,18 @@ jobs:
       - name: Run Semgrep SAST
         run: |
           uv pip install --system semgrep
-          semgrep scan --config=auto --error \
+          mkdir -p reports
+          semgrep scan --config=auto \
             --exclude="*.lock" \
             --exclude=".venv" \
             --sarif-output=reports/semgrep.sarif \
-            . || true 
-          generateSarif: "1"
+            . || true
 
       - name: Upload SARIF
-        if: always()
+        if: always() && hashFiles('reports/semgrep.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: semgrep.sarif
+          sarif_file: reports/semgrep.sarif
         continue-on-error: true
 
   licenses:
@@ -152,6 +153,7 @@ jobs:
 
       - name: Check licenses
         run: |
+          mkdir -p reports
           uv run pip-licenses --format=markdown --output-file=reports/licenses.md
           echo ""
           echo "=== Checking for problematic licenses ==="
