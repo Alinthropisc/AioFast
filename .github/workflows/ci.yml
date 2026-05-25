@@ -168,7 +168,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/ \
+          uv run pytest core/testing/ \
             -v \
             --tb=short \
             --strict-markers \
@@ -221,7 +221,7 @@ jobs:
 
       - name: Run coverage
         run: |
-          uv run coverage run -m pytest tests/ -q
+          uv run coverage run -m pytest core/testing/ -q
           uv run coverage report --fail-under=80
           uv run coverage xml -o coverage.xml
 

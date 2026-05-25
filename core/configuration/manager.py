@@ -132,6 +132,12 @@ class ConfigurationManager:
                 and not attr.__name__.startswith("_")
             ):
                 try:
+                    # Config files that use `from __future__ import annotations`
+                    # defer their type hints, so pydantic needs an explicit
+                    # rebuild (resolving Literal/NestedConfig from the module)
+                    # before the model can be instantiated.
+                    if hasattr(attr, "model_rebuild"):
+                        attr.model_rebuild()
                     config_instance = attr()
                     config_name = config_instance.config_name()
                     self._configs[config_name] = config_instance

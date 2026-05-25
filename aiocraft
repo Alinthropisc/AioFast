@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# AioFast console launcher (Unix).
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec python "$DIR/aiocraft.py" "$@"

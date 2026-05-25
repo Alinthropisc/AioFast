@@ -1,0 +1,11 @@
+from core.controller.base import Controller
+from core.controller.decorators import get
+
+
+class {{ className }}(Controller):
+    path = "{{ routePath }}"
+    tags = ["{{ snakeName }}"]
+
+    @get()
+    async def index(self) -> dict:
+        return self.ok([])

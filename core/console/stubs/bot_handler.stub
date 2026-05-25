@@ -1,0 +1,14 @@
+from aiogram import Router
+from aiogram.filters import Command
+from aiogram.types import Message
+
+router = Router()
+
+
+class {{ className }}:
+    """Aiogram handler — register `router` with your dispatcher."""
+
+    @staticmethod
+    @router.message(Command("{{ command }}"))
+    async def handle(message: Message) -> None:
+        await message.answer("Hello from {{ className }}!")

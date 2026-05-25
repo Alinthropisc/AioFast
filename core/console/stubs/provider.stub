@@ -1,0 +1,9 @@
+from core.foundation import ServiceProvider
+
+
+class {{ className }}(ServiceProvider):
+    async def register(self) -> None:
+        """Bind services into the container."""
+
+    async def boot(self) -> None:
+        """Run after all providers are registered."""

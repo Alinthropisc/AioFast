@@ -81,7 +81,7 @@ jobs:
           uv pip install ".[dev,test]" aiosqlite
 
       - name: Run tests
-        run: uv run pytest tests/ -v --tb=short -x --timeout=60
+        run: uv run pytest core/testing/ -v --tb=short -x --timeout=60
 
   build:
     name: "📦 Build Package"

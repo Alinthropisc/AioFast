@@ -1,0 +1,8 @@
+from core.service import Service
+
+
+class {{ className }}(Service):
+    """{{ className }} — business logic lives here."""
+
+    async def handle(self) -> None:
+        ...

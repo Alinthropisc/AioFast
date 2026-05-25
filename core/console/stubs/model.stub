@@ -1,0 +1,9 @@
+from sqlalchemy.orm import Mapped, mapped_column
+
+from core.database import BaseModel
+
+
+class {{ className }}(BaseModel):
+    __tablename__ = "{{ tableName }}"
+
+    name: Mapped[str] = mapped_column()

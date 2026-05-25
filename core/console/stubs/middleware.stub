@@ -1,0 +1,9 @@
+from litestar.middleware import AbstractMiddleware
+from litestar.types import ASGIApp, Receive, Scope, Send
+
+
+class {{ className }}(AbstractMiddleware):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        # Pre-processing here.
+        await self.app(scope, receive, send)
+        # Post-processing here.
