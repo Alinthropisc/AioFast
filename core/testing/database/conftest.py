@@ -150,22 +150,18 @@ class ScopedUser(ScopeMixin, Base):
     created_at = mapped_column(DateTime)
     updated_at = mapped_column(DateTime)
 
-    @classmethod
     @scope
     def active(cls, query, *args):
         return query.where(cls.is_active)
 
-    @classmethod
     @scope
     def admins(cls, query, *args):
         return query.where(cls.role == "admin")
 
-    @classmethod
     @scope
     def by_role(cls, query, role: str, *args):
         return query.where(cls.role == role)
 
-    @classmethod
     @scope
     def search(cls, query, term: str, *args):
         return query.where(

@@ -57,12 +57,16 @@ class ScopeMixin:
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        # Collect scopes from class
-        cls._scopes = {}
-        for name in dir(cls):
-            attr = getattr(cls, name, None)
-            if callable(attr) and getattr(attr, "_is_scope", False):
-                cls._scopes[name] = attr
+        # Collect scopes across the MRO. We inspect the *raw* class attribute
+        # (the ``classmethod`` object) and read ``_is_scope`` off its underlying
+        # function — bound-method attribute proxying is unreliable on 3.13+.
+        scopes: dict[str, Callable] = {}
+        for klass in reversed(cls.__mro__):
+            for name, value in vars(klass).items():
+                fn = value.__func__ if isinstance(value, classmethod) else value
+                if callable(fn) and getattr(fn, "_is_scope", False):
+                    scopes[name] = getattr(cls, name)
+        cls._scopes = scopes
 
 
 def scope(fn: Callable) -> Callable:
