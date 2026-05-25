@@ -18,7 +18,7 @@ WORKDIR /build
 COPY pyproject.toml uv.lock ./
 COPY core/ core/
 
-RUN uv sync --frozen --no-dev --extra prod && \
+RUN uv sync --frozen --no-dev && \
     find /usr/local/lib/python3.12 -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 
@@ -55,8 +55,11 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY core/ core/
 COPY app/ app/
 COPY config/ config/
-COPY main.py aiocraft ./
-COPY docker/entrypoint.sh docker/entrypoint.sh
+COPY routes/ routes/
+COPY database/ database/
+COPY bootstrap/ bootstrap/
+COPY main.py aiocraft.py aiocraft ./
+COPY docker/entrypoint.sh /entrypoint.sh
 
 RUN mkdir -p storage/logs storage/cache storage/locks bootstrap/cache && \
     chown -R aiofast:aiofast /app
@@ -68,7 +71,7 @@ USER aiofast
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/api/health || exit 1
 
 ENTRYPOINT ["tini", "--", "/entrypoint.sh"]
 CMD ["serve"]

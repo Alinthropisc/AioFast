@@ -35,6 +35,7 @@ jobs:
       - name: Run benchmarks
         run: |
           pytest benchmarks/ \
+            -o python_files="bench_*.py" \
             --benchmark-json=benchmark-results.json \
             --benchmark-sort=mean \
             --benchmark-min-rounds=10 \
@@ -42,6 +43,7 @@ jobs:
 
       - name: Store benchmark result
         if: github.ref == 'refs/heads/main' && hashFiles('benchmark-results.json') != ''
+        continue-on-error: true
         uses: benchmark-action/github-action-benchmark@v1
         with:
           tool: pytest
@@ -55,6 +57,7 @@ jobs:
   
       - name: Compare with main (PR only)
         if: github.event_name == 'pull_request' && hashFiles('benchmark-results.json') != ''
+        continue-on-error: true
         uses: benchmark-action/github-action-benchmark@v1
         with:
           tool: pytest

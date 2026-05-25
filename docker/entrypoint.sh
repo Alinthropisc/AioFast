@@ -63,23 +63,23 @@ case "${1:-serve}" in
         ok "Starting AioFast server..."
         ok "Workers: ${SERVER_WORKERS:-4}"
         ok "Host: ${SERVER_HOST:-0.0.0.0}:${SERVER_PORT:-8000}"
-        exec python main.py
+        exec python aiocraft.py serve
         ;;
 
     worker)
         ok "Starting queue worker..."
         # shellcheck disable=SC2068
-        exec python -m aiocraft queue:work ${@:2}
+        exec python aiocraft.py queue:work ${@:2}
         ;;
 
     scheduler)
         ok "Starting scheduler..."
-        exec python -m aiocraft schedule:run
+        exec python aiocraft.py schedule:run
         ;;
 
     migrate)
         ok "Running migrations..."
-        exec python -m aiocraft migrate:run --force
+        exec python aiocraft.py migrate:run --force
         ;;
 
     shell)
@@ -93,7 +93,7 @@ print('AioFast Shell — use asyncio.run() for async calls')
 
     aiocraft)
         # shellcheck disable=SC2068
-        exec python -m aiocraft ${@:2}
+        exec python aiocraft.py ${@:2}
         ;;
 
     *)

@@ -20,7 +20,7 @@ def test_route_lookup_speed(benchmark):
         c.get(f"/api/v1/resource/{i}", dummy_handler, name=f"route_{i}")
 
     def lookup():
-        for r in c.routes:  # ty:ignore[unresolved-attribute]
+        for r in c.collect():
             _ = r.path
 
     benchmark(lookup)
