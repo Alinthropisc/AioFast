@@ -34,7 +34,7 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          uv run pytest benchmarks/ \
+          pytest benchmarks/ \
             --benchmark-json=benchmark-results.json \
             --benchmark-sort=mean \
             --benchmark-min-rounds=10 \

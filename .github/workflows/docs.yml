@@ -39,10 +39,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install ".[dev,docs]" mkdocs-material "mkdocstrings[python]" mkdocs-gen-files mkdocs-literate-nav mkdocs-section-index
+          uv pip install --system ".[dev,docs]" mkdocs-material "mkdocstrings[python]" mkdocs-gen-files mkdocs-literate-nav mkdocs-section-index
 
       - name: Build docs
-        run: uv run mkdocs build --strict
+        run: mkdocs build --strict
 
       - name: Upload docs artifact
         uses: actions/upload-artifact@v4
@@ -73,9 +73,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install ".[dev,docs]" mkdocs-material "mkdocstrings[python]"
+          uv pip install --system ".[dev,docs]" mkdocs-material "mkdocstrings[python]"
 
       - name: Deploy to GitHub Pages
-        run: uv run mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

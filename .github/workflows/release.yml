@@ -78,10 +78,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install ".[dev,test]" aiosqlite
+          uv pip install --system ".[dev,test]" aiosqlite
 
       - name: Run tests
-        run: uv run pytest core/testing/ -v --tb=short -x --timeout=60
+        run: pytest core/testing/ -v --tb=short -x --timeout=60
 
   build:
     name: "📦 Build Package"
@@ -106,7 +106,7 @@ jobs:
 
       - name: Check package
         run: |
-          uv pip install twine
+          uv pip install --system twine
           twine check dist/*
           echo "📦 Built packages:"
           ls -la dist/

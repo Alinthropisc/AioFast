@@ -61,10 +61,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv pip install --system ".[dev]" ty
 
       - name: Run ty
-        run: uv run ty check core/
+        run: ty check core/
         continue-on-error: true
 
   test:
@@ -152,23 +152,23 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install dependencies
-        run: uv pip install ".[dev,test]" aiosqlite
+        run: uv pip install --system ".[dev,test]" aiosqlite
 
       - name: Install DB driver (PostgreSQL)
         if: matrix.db == 'postgresql'
-        run: uv pip install asyncpg psycopg2-binary
+        run: uv pip install --system asyncpg psycopg2-binary
 
       - name: Install DB driver (MySQL)
         if: matrix.db == 'mysql'
-        run: uv pip install aiomysql
-      
+        run: uv pip install --system aiomysql
+
       - name: Install DB driver (SQLite)
         if: matrix.db == 'sqlite'
-        run: uv pip install aiosqlite
+        run: uv pip install --system aiosqlite
 
       - name: Run tests
         run: |
-          uv run pytest core/testing/ \
+          pytest core/testing/ \
             -v \
             --tb=short \
             --strict-markers \
@@ -217,13 +217,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv pip install ".[dev,test]" aiosqlite coverage
+        run: uv pip install --system ".[dev,test]" aiosqlite coverage
 
       - name: Run coverage
         run: |
-          uv run coverage run -m pytest core/testing/ -q
-          uv run coverage report --fail-under=80
-          uv run coverage xml -o coverage.xml
+          coverage run -m pytest core/testing/ -q
+          coverage report --fail-under=80
+          coverage xml -o coverage.xml
 
       - name: Coverage comment on PR
         uses: orgoro/coverage@v3.2
